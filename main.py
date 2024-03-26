@@ -27,7 +27,6 @@ def YABStoSTAT(data: dict, width: int) -> dict:
         "Provider": "",
         "Description": "",
         "CPU": {
-            # "freq": "",
             "single": float(),
             "multi": float(),
         },
@@ -104,7 +103,7 @@ class YABS(object):
 
     def Print(self):
         for s in self.stat:
-            print(s)
+            print(s["Description"])
     
             
     def Plot(self, resources: list[str] = ["CPU"]): 
@@ -147,17 +146,15 @@ class YABS(object):
         plt.show() 
 
 
-
-
 def main(path: str):
     yabs = YABS()
     for file in glob.glob(path):
         yabs.AddFile(file)
 
     yabs.Calculate()
+    yabs.Print()
     yabs.Plot(['CPU', 'Speed', 'IOps'])
-
-
-
+    
+    
 if __name__ == "__main__":
     main("results/*/*.json")
