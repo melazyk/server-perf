@@ -2,9 +2,10 @@
 
 import json
 import glob
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from time import sleep
 
 def load_file(filename: str) -> dict:
     """
@@ -78,7 +79,7 @@ def YABStoSTAT(data: dict, width: int) -> dict:
 class YABS(object):
     """
     YABS class
-    
+
     This class is used to store YABS data and convert it to STAT data
     """
     def __init__(self):
@@ -90,11 +91,11 @@ class YABS(object):
     def AddFile(self, filename: str):
         data = load_file(filename)
         data["provider"] = filename.split("/")[1]
-        
-        # Find the longest provider name 
+
+        # Find the longest provider name
         if len(data["provider"]) > self.provider_width:
-            self.provider_width = len(data["provider"]) 
-            
+            self.provider_width = len(data["provider"])
+
         self.data.append(data)
 
     def Calculate(self):
@@ -104,28 +105,28 @@ class YABS(object):
     def Print(self):
         for s in self.stat:
             print(s["Description"])
-    
-            
-    def Plot(self, resources: list[str] = ["CPU"]): 
+
+
+    def Plot(self, resources: list[str] = ["CPU"]):
         fig, axes = plt.subplots(ncols=len(resources), figsize=(14 * len(resources), 10 ))
 
         colors = sns.color_palette("colorblind", len(self.stat))
-        
+
         for resource in resources:
             if resource not in ["CPU", "Speed", "IOps"]:
                 raise ValueError("Invalid value for resource. Must be one of 'CPU', 'Speed', or 'IOps'.")
-                        
+
             bars = {}
             groups = []
             for s in self.stat:
                 if s["Description"] not in bars:
                     bars[s["Description"]] = []
-                
+
                 for r in sorted(s[resource].keys()):
                     if r not in groups:
                         groups.append(r)
                     bars[s["Description"]].append(s[resource][r])
-            
+
             count = len(self.stat)
             barWidth = round(1 / ( count + 1 ), self.round )
             brs = []
@@ -134,17 +135,17 @@ class YABS(object):
             axe = plt.axes(axes[resources.index(resource)])
             for i in range(count):
                 label = self.stat[i]["Description"]
-                axe.bar(brs[i], bars[label], color = colors[i], width= barWidth, edgecolor = 'grey', label = label ) 
+                axe.bar(brs[i], bars[label], color = colors[i], width= barWidth, edgecolor = 'grey', label = label )
                 brs.append([round(x + barWidth, self.round) for x in brs[i]])
 
 
             axe.legend(prop={'family': 'monospace', 'size': 10}, shadow=False)
             axe.set_xticks([r + barWidth for r in range(len(groups))], groups)
             axe.set_title(resource, fontsize=20)
-        
-        plt.plot()
-        plt.show() 
 
+        plt.plot()
+        # plt.show()
+        plt.savefig("output.png")
 
 def main(path: str):
     yabs = YABS()
@@ -154,7 +155,7 @@ def main(path: str):
     yabs.Calculate()
     yabs.Print()
     yabs.Plot(['CPU', 'Speed', 'IOps'])
-    
-    
+
+
 if __name__ == "__main__":
     main("results/*/*.json")
